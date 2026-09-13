@@ -25,11 +25,7 @@
                     er font-semibold">Sept 11</th>
                     <th class="p-4 text-center font-semibold">Sept 12</th>
                 </tr>
-                <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                    <!-- <td class="p-4 text-gray-800 font-medium">habit 1</td>
-                    <td></td> -->
 
-                </tr>
 
             </table>
         </div>
@@ -75,26 +71,35 @@
             // Only add grading row if there are habits
             if (tbl.rows.length <= 1) return;
 
+            const numHabits = tbl.rows.length - 1;
+
             const totallingRow = tbl.insertRow(-1);
             const firstCell = totallingRow.insertCell(0);
             firstCell.textContent = "Total:";
             firstCell.style.fontWeight = "bold";
             firstCell.style.backgroundColor = "#e0e7ff";
 
+            const todayDate = today.getDate();
+
             // Calculate totals for each day
             for (let i = 1; i <= daysInMonth; i++) {
-                let total = 0;
-                for (let j = 1; j < tbl.rows.length - 1; j++) {
-                    const cellContent = tbl.rows[j].cells[i].textContent;
-                    if (cellContent === "✓") {
-                        total += 1;
-                    }
-                }
                 const cell = totallingRow.insertCell(-1);
-                cell.textContent = total;
                 cell.style.textAlign = "center";
                 cell.style.fontWeight = "bold";
                 cell.style.backgroundColor = "#e0e7ff";
+
+                if (i <= todayDate) {
+                    let total = 0;
+                    for (let j = 1; j <= numHabits; j++) {
+                        const cellContent = tbl.rows[j].cells[i].textContent;
+                        if (cellContent === "✓" || cellContent === "\u2713") {
+                            total += 1;
+                        }
+                    }
+                    cell.textContent = `${total}/${numHabits}`;
+                } else {
+                    cell.textContent = "";
+                }
             }
         }
 
