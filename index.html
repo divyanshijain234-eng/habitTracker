@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <main class="flex flex-col max-w-4xl mx-auto p-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
+            <p class="text-gray-600">Track your daily habits and build better systems</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 overflow-x-auto">
+            <table id="tbl" class="w-full border-collapse">
+                <tr class="bg-indigo-600 text-white">
+                    <th class="p-4 text-left font-semibold">Habit Name</th>
+                    <th class="p-4 text-center font-semibold">Sept 10</th>
+                    <th class="p-4 text-cent
+                    
+                    er font-semibold">Sept 11</th>
+                    <th class="p-4 text-center font-semibold">Sept 12</th>
+                </tr>
+                <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                    <!-- <td class="p-4 text-gray-800 font-medium">habit 1</td>
+                    <td></td> -->
+
+                </tr>
+
+            </table>
+        </div>
+
+        <button id="add"
+            class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200 transform hover:scale-105 self-start">+
+            Add Habit</button>
+    </main>
+
+
+    <script>
+        const tbl = document.getElementById("tbl");
+
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        function monthHeader() {
+            const headerRow = tbl.rows[0];
+            headerRow.innerHTML = '';
+
+            const labelCell = headerRow.insertCell(-1);
+            labelCell.textContent = "Your Daily Habits:";
+            labelCell.style.fontWeight = "bold";
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const cell = headerRow.insertCell(-1);
+                cell.textContent = `${i}/${currentMonth + 1}`;
+                cell.style.textAlign = "center";
+            }
+        }
+
+        function updateGradingCells() {
+            // Remove existing grading row if present
+            if (tbl.rows.length > 1) {
+                const lastRow = tbl.rows[tbl.rows.length - 1];
+                if (lastRow.cells[0].textContent === "Total:") {
+                    tbl.deleteRow(tbl.rows.length - 1);
+                }
+            }
+
+            // Only add grading row if there are habits
+            if (tbl.rows.length <= 1) return;
+
+            const totallingRow = tbl.insertRow(-1);
+            const firstCell = totallingRow.insertCell(0);
+            firstCell.textContent = "Total:";
+            firstCell.style.fontWeight = "bold";
+            firstCell.style.backgroundColor = "#e0e7ff";
+
+            // Calculate totals for each day
+            for (let i = 1; i <= daysInMonth; i++) {
+                let total = 0;
+                for (let j = 1; j < tbl.rows.length - 1; j++) {
+                    const cellContent = tbl.rows[j].cells[i].textContent;
+                    if (cellContent === "✓") {
+                        total += 1;
+                    }
+                }
+                const cell = totallingRow.insertCell(-1);
+                cell.textContent = total;
+                cell.style.textAlign = "center";
+                cell.style.fontWeight = "bold";
+                cell.style.backgroundColor = "#e0e7ff";
+            }
+        }
+
+        function insertRow() {
+            let newHabit = prompt("Enter new habit you want to add:");
+            if (!newHabit || newHabit.trim() === "") return; // Cancel if user doesn't enter anything
+
+            try {
+                // Find the correct insert position: before the Totals row (if it exists)
+                let insertIndex = tbl.rows.length; // default: append at end
+                const lastRow = tbl.rows[tbl.rows.length - 1];
+                if (lastRow && lastRow.cells[0] && lastRow.cells[0].textContent === "Total:") {
+                    insertIndex = tbl.rows.length - 1; // insert before Totals row
+                }
+
+                let newRow = tbl.insertRow(insertIndex);
+
+                // Add habit name in first cell
+                let cell1 = newRow.insertCell(0);
+                cell1.textContent = newHabit;
+                cell1.style.fontWeight = "500";
+
+                const todayDate = today.getDate(); // day-of-month for today
+
+                // Add tracking cells for each day
+                for (let i = 1; i <= daysInMonth; i++) {
+                    let cell = newRow.insertCell(-1);
+                    cell.style.textAlign = "center";
+                    cell.style.padding = "1rem";
+
+                    if (i <= todayDate) {
+                        // Past or today: trackable, default to ✗
+                        cell.textContent = "✗";
+                        cell.style.color = "red";
+                    } else {
+                        // Future date: show dash, not interactive
+                        cell.textContent = "\u2013";
+                        cell.style.color = "#aaa";
+                        cell.style.cursor = "default";
+                        cell.dataset.future = "true";
+                    }
+                }
+
+                // Recalculate grading after adding new habit
+                updateGradingCells();
+                console.log("Habit added successfully: " + newHabit);
+            } catch (error) {
+                console.error("Error adding habit:", error);
+                alert("Error adding habit. Check console for details.");
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            let selectedCell = event.target.closest('td');
+            if (!selectedCell) return;
+
+            // Don't allow clicking header or grading row
+            if (selectedCell.parentElement === tbl.rows[0]) return;
+            if (selectedCell.textContent === "Total:") return;
+            if (selectedCell.textContent === "Your Daily Habits:") return;
+
+            // Don't allow toggling future-date cells
+            if (selectedCell.dataset.future === "true") return;
+
+            let currState = selectedCell.textContent;
+
+            if (currState === "\u2717") {
+                selectedCell.textContent = "\u2713";
+                selectedCell.style.color = "green";
+            } else if (currState === "\u2713") {
+                selectedCell.textContent = "\u2717";
+                selectedCell.style.color = "red";
+            }
+
+            // Update grading row when cell is clicked
+            updateGradingCells();
+        });
+
+        // Initialize: Call monthHeader on page load
+        try {
+            monthHeader();
+            updateGradingCells();
+            console.log("Initialization successful - Table ready");
+        } catch (error) {
+            console.error("Error during initialization:", error);
+        }
+
+        // Add event listener to button - ensure this runs even if init has issues
+        const addButton = document.getElementById("add");
+        if (addButton) {
+            addButton.onclick = insertRow;
+            console.log("Button click handler registered");
+        } else {
+            console.error("Add button not found!");
+        }
+    </script>
+
+    <style>
+        td {
+            padding: 1rem;
+            color: rgb(31, 41, 55);
+            font-weight: 500;
+        }
+
+        td:hover {
+            cursor: pointer;
+        }
+    </style>
+</body>
+
+</html>
